@@ -8,6 +8,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const authRoutes = require("./routes/authRoutes");
 
 // 1. Load Environment Variables
 // Documentation: This allows access to variables defined in .env (like MONGO_URI)
@@ -25,6 +26,10 @@ app.use(cors());
 
 // Body Parser: Allows the server to understand JSON data sent in requests
 app.use(express.json());
+
+// Use Routes
+// Documentation: All auth-related routes will start with /api/auth
+app.use("/api/auth", authRoutes);
 
 /**
  * --- DATABASE CONNECTION ---
