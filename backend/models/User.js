@@ -1,7 +1,7 @@
 /**
  * @module models/User
- * @description This file defines the User schema for MongoDB using Mongoose.
- * It includes fields for local auth, social auth (Google), and verification status.
+ * @description Defines the User schema for MongoDB.
+ * Optimized for local auth, Google OAuth, and multi-factor verification.
  */
 
 const mongoose = require("mongoose");
@@ -25,6 +25,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  phoneNumber: {
+    type: String,
+    required: [true, "Phone number is required for security verification"],
+    trim: true,
+  },
 
   // --- VERIFICATION FLAGS ---
   isEmailVerified: {
@@ -35,13 +40,8 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  phoneNumber: {
-    type: String,
-    default: null,
-  },
 
   // --- SECURITY / OTP STORAGE ---
-  // We store the hashed OTP and its expiry time here temporarily
   emailOtp: { type: String },
   phoneOtp: { type: String },
   otpExpiry: { type: Date },
@@ -52,5 +52,4 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Export the model
 module.exports = mongoose.model("User", userSchema);
