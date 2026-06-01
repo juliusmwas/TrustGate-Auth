@@ -23,8 +23,8 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900">
       <div className="bg-slate-800 p-8 rounded-xl border border-slate-700 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-white mb-6">
-          Login to TrustGate
+        <h2 className="text-2xl font-bold text-white mb-6 text-center">
+          Login
         </h2>
         <form onSubmit={handleLogin} className="space-y-4">
           <input
