@@ -1,9 +1,8 @@
-export default function App() {
-  return (
-    <>
-      <h1 className="text-3xl font-bold text-blue-500">
-        Welcome to TrustGate-Auth!
-      </h1>
-    </>
-  );
+import Login from "./pages/Login";
+
+function App() {
+  // Switch between <Signup /> and <Login /> to test each one
+  return <Login />;
 }
+
+export default App;
