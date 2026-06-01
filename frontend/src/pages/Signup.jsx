@@ -1,12 +1,14 @@
 /**
  * @file Signup.jsx
- * @description Advanced Signup with Confirm Password, Phone field, and Show/Hide logic.
+ * @description Advanced Signup with Redirect, Confirm Password, and Phone fields.
  */
 import React, { useState } from "react";
 import axios from "axios";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import { Eye, EyeOff, Mail, Lock, Phone, UserPlus } from "lucide-react";
 
 const Signup = () => {
+  const navigate = useNavigate(); // Initialize navigation
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -35,7 +37,16 @@ const Signup = () => {
         password: formData.password,
         phoneNumber: formData.phoneNumber,
       });
-      setStatus({ type: "success", msg: res.data.message });
+
+      setStatus({
+        type: "success",
+        msg: "✅ Account created! Redirecting to login...",
+      });
+
+      // 3. Redirect after 2 seconds
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err) {
       setStatus({
         type: "error",
@@ -132,9 +143,26 @@ const Signup = () => {
           </button>
         </form>
 
+        {/* Redirect to Login Link */}
+        <div className="mt-6 text-center">
+          <p className="text-slate-400 text-sm">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="text-blue-400 font-bold hover:underline"
+            >
+              Log In
+            </Link>
+          </p>
+        </div>
+
         {status.msg && (
           <div
-            className={`mt-6 p-3 rounded-lg text-center text-sm font-medium ${status.type === "success" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}
+            className={`mt-6 p-3 rounded-lg text-center text-sm font-medium ${
+              status.type === "success"
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                : "bg-red-500/10 text-red-400 border border-red-500/20"
+            }`}
           >
             {status.msg}
           </div>
