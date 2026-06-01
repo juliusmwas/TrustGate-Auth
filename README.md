@@ -1,4 +1,4 @@
-# TrustGate Auth (or Auth-Guard-Pro)
+# TrustGate Auth
 
 A production-ready, secure authentication portal designed to handle the full user trust journey—from initial identity creation to multi-channel verification.
 
