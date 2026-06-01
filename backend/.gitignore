@@ -1,0 +1,21 @@
+# Dependencies
+**/node_modules/
+**/dist/
+**/build/
+
+# Security (CRITICAL)
+**/.env
+**/.env.local
+**/secrets.json
+
+# Debug logs
+*.log
+npm-debug.log*
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
