@@ -11,8 +11,12 @@ const { protect } = require("../middleware/authMiddleware"); // Import our JWT m
 router.post("/signup", authController.signup);
 router.post("/login", authController.login);
 
-// 2. Private Protected Security Endpoints (Token validation required)
+// 2. Private Protected Email Security Endpoints (Token validation required)
 router.post("/send-email-otp", protect, authController.sendEmailOtp);
 router.post("/verify-email-otp", protect, authController.verifyEmailOtp);
+
+// 3. Private Protected Mock SMS Security Endpoints (Token validation required)
+router.post("/send-sms-otp", protect, authController.sendSmsOtp);
+router.post("/verify-sms-otp", protect, authController.verifySmsOtp);
 
 module.exports = router;
