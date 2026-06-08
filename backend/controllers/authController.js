@@ -222,3 +222,86 @@ exports.verifyEmailOtp = async (req, res) => {
       .json({ message: "Server error during verification processing." });
   }
 };
+
+/**
+ * @route   POST /api/auth/send-sms-otp
+ * @desc    Mock SMS Provider: Generates an OTP and simulates sending it via terminal logs
+ * @access  Private (Protected by JWT)
+ */
+exports.sendSmsOtp = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    // 1. Generate a random 6-digit numeric code
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiry
+
+    // 2. Save directly to the user document
+    user.phoneOtp = otp; // Make sure your user model has a 'phoneOtp' field, or reuse a generic field
+    user.phoneOtpExpiry = expiry;
+    await user.save();
+
+    // 3. THE MOCK SIMULATOR: Print a beautiful mock phone screen in your server console!
+    console.log("\n=================================================");
+    console.log(`📱 MOCK SMS GATEWAY SIMULATOR`);
+    console.log(`📡 TO: ${user.phoneNumber || "Registered User Phone"}`);
+    console.log(`💬 MESSAGE: Your TrustGate MFA code is: [ ${otp} ]`);
+    console.log("=================================================\n");
+
+    res.status(200).json({
+      success: true,
+      message: `Security code generated! Check your backend server terminal to read the text message.`,
+    });
+  } catch (error) {
+    console.error("Mock SMS Error:", error);
+    res.status(500).json({ message: "Failed to process mock SMS request." });
+  }
+};
+
+/**
+ * @route   POST /api/auth/verify-sms-otp
+ * @desc    Validate the 6-digit mock SMS code inputted by the user
+ * @access  Private (Protected by JWT)
+ */
+exports.verifySmsOtp = async (req, res) => {
+  try {
+    const { otpInput } = req.body;
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user.phoneOtp || !user.phoneOtpExpiry) {
+      return res
+        .status(400)
+        .json({ message: "No active phone code found. Request a new one." });
+    }
+
+    if (new Date() > user.phoneOtpExpiry) {
+      return res.status(400).json({ message: "This phone code has expired." });
+    }
+
+    if (user.phoneOtp !== otpInput) {
+      return res
+        .status(400)
+        .json({ message: "Invalid code. Check your backend terminal again." });
+    }
+
+    // Clear keys and set flag
+    user.isPhoneVerified = true;
+    user.phoneOtp = undefined;
+    user.phoneOtpExpiry = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message:
+        "Phone network verified successfully! Your multi-factor setup is complete.",
+    });
+  } catch (error) {
+    console.error("Phone Verification Error:", error);
+    res
+      .status(500)
+      .json({ message: "Server error during phone verification processing." });
+  }
+};
