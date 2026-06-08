@@ -1,7 +1,7 @@
 /**
  * @file authController.js
  * @description Logic for User Signup, Login, and Multi-Factor OTP Verification.
- * Implements password hashing (Bcrypt), stateless authentication (JWT), and Nodemailer.
+ * Implements password hashing (Bcrypt), secure HttpOnly cookie session management, and Nodemailer.
  */
 
 const User = require("../models/User");
@@ -58,7 +58,7 @@ exports.signup = async (req, res) => {
 
 /**
  * @route   POST /api/auth/login
- * @desc    Authenticate user and return JWT
+ * @desc    Authenticate user and append signed JWT into an HttpOnly security cookie wrapper
  * @access  Public
  */
 exports.login = async (req, res) => {
@@ -82,9 +82,17 @@ exports.login = async (req, res) => {
       expiresIn: "1h",
     });
 
+    // 4. Bake the token directly into an HttpOnly cookie response stream
+    res.cookie("token", token, {
+      httpOnly: true, // Blocks frontend browser JavaScript from reading it (Stops XSS)
+      secure: process.env.NODE_ENV === "production", // Requires HTTPS encryption layers on production builds
+      sameSite: "lax", // Helps prevent Cross-Site Request Forgery (CSRF)
+      maxAge: 60 * 60 * 1000, // Matches expiration timer to 1 hour (expressed in milliseconds)
+    });
+
+    // 5. Return success state to the client without exposing the raw token string
     res.status(200).json({
       success: true,
-      token,
       user: {
         id: user._id,
         email: user.email,
@@ -157,12 +165,9 @@ exports.sendEmailOtp = async (req, res) => {
     });
   } catch (error) {
     console.error("Nodemailer Error:", error);
-    res
-      .status(500)
-      .json({
-        message:
-          "Failed to send verification email. Check server configuration.",
-      });
+    res.status(500).json({
+      message: "Failed to send verification email. Check server configuration.",
+    });
   }
 };
 
@@ -180,14 +185,12 @@ exports.verifyEmailOtp = async (req, res) => {
 
     // Check if an OTP was even generated
     if (!user.emailOtp || !user.otpExpiry) {
-      return res
-        .status(400)
-        .json({
-          message: "No active verification code found. Request a new one.",
-        });
+      return res.status(400).json({
+        message: "No active verification code found. Request a new one.",
+      });
     }
 
-    // Check if the OTP has expired
+    // Check if the Autumn Token signature has expired
     if (new Date() > user.otpExpiry) {
       return res
         .status(400)
