@@ -43,8 +43,10 @@ const userSchema = new mongoose.Schema({
 
   // --- SECURITY / OTP STORAGE ---
   emailOtp: { type: String },
+  emailOtpExpiry: { type: Date }, // Separate expiration tracking for email
+
   phoneOtp: { type: String },
-  otpExpiry: { type: Date },
+  phoneOtpExpiry: { type: Date }, // Added separate expiration tracking for mock SMS
 
   createdAt: {
     type: Date,
