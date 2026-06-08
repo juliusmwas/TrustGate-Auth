@@ -1,6 +1,7 @@
 /**
  * @file Dashboard.jsx
  * @description Secure account security dashboard utilizing HttpOnly credential states and dynamic verification panels.
+ * Features a sandbox demo banner that catches intercepted mock tokens for hosting deployment.
  */
 import React, { useState } from "react";
 import axios from "axios";
@@ -12,6 +13,7 @@ import {
   LogOut,
   KeyRound,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -30,6 +32,7 @@ const Dashboard = () => {
   const [phoneSent, setPhoneSent] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [phoneOtpInput, setPhoneOtpInput] = useState("");
+  const [visibleDemoCode, setVisibleDemoCode] = useState(""); // Holds sandbox code string
 
   // ==========================================
   // 1. EMAIL AUTHENTICATION ACTIONS
@@ -107,12 +110,13 @@ const Dashboard = () => {
         {},
         { withCredentials: true },
       );
+
       setPhoneSent(true);
+      setVisibleDemoCode(res.data.demoCode || ""); // Intercept code payload
+
       setStatus({
         type: "success",
-        msg:
-          res.data.message ||
-          "Simulator code printed to terminal log successfully!",
+        msg: "MFA Token payload intercepted successfully!",
       });
     } catch (err) {
       setStatus({
@@ -306,6 +310,23 @@ const Dashboard = () => {
             {/* Dynamic UI switching for Mock Phone Entry fields */}
             {!phoneVerified && phoneSent ? (
               <form onSubmit={handleVerifyPhoneOtp} className="space-y-3 mt-2">
+                {/* ─── LIVE PORTFOLIO DEMO BANNER CALLOUT ─── */}
+                <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl text-xs text-amber-400 mb-2 leading-relaxed flex items-start gap-2">
+                  <Sparkles
+                    size={16}
+                    className="text-amber-400 shrink-0 mt-0.5"
+                  />
+                  <div>
+                    <b>Demo Sandbox Mode:</b> To test this database routing
+                    validation without standard SMS carrier costs, input
+                    intercept code:{" "}
+                    <span className="font-mono bg-slate-900 px-1.5 py-0.5 rounded text-white font-bold tracking-widest border border-slate-700">
+                      {visibleDemoCode}
+                    </span>
+                  </div>
+                </div>
+                {/* ────────────────────────────────────────── */}
+
                 <div className="relative">
                   <KeyRound
                     className="absolute left-3 top-3 text-slate-500"
@@ -314,7 +335,7 @@ const Dashboard = () => {
                   <input
                     type="text"
                     maxLength={6}
-                    placeholder="Terminal Log Code"
+                    placeholder="Enter Intercepted Code"
                     value={phoneOtpInput}
                     required
                     onChange={(e) =>
