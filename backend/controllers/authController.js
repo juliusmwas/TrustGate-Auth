@@ -127,7 +127,7 @@ exports.sendEmailOtp = async (req, res) => {
 
     // 4. Save the OTP and expiry directly to this user's document
     user.emailOtp = otp;
-    user.otpExpiry = expiry;
+    user.emailOtpExpiry = expiry;
     await user.save();
 
     // 5. Configure the Nodemailer email transporter using your .env secrets
@@ -139,10 +139,10 @@ exports.sendEmailOtp = async (req, res) => {
       },
     });
 
-    // 6. Design a professional HTML email template (using the email address they registered with)
+    // 6. Design a professional HTML email template
     const mailOptions = {
       from: `"TrustGate Security" <${process.env.EMAIL_USER}>`,
-      to: user.email, // Automatically sends to their registered email!
+      to: user.email,
       subject: "Verify Your TrustGate Account Identity",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 30px; background-color: #0F172A; color: #ffffff; border-radius: 12px; max-width: 480px; margin: 0 auto; border: 1px solid #334155;">
@@ -183,15 +183,15 @@ exports.verifyEmailOtp = async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Check if an OTP was even generated
-    if (!user.emailOtp || !user.otpExpiry) {
+    // Check if an OTP was even generated using updated field properties
+    if (!user.emailOtp || !user.emailOtpExpiry) {
       return res.status(400).json({
         message: "No active verification code found. Request a new one.",
       });
     }
 
-    // Check if the Autumn Token signature has expired
-    if (new Date() > user.otpExpiry) {
+    // Check if the expiration token signature has expired
+    if (new Date() > user.emailOtpExpiry) {
       return res
         .status(400)
         .json({ message: "This code has expired. Please request a new one." });
@@ -207,7 +207,7 @@ exports.verifyEmailOtp = async (req, res) => {
     // Clear the security keys and update status flags on successful match
     user.isEmailVerified = true;
     user.emailOtp = undefined;
-    user.otpExpiry = undefined;
+    user.emailOtpExpiry = undefined;
     await user.save();
 
     res.status(200).json({
@@ -225,7 +225,7 @@ exports.verifyEmailOtp = async (req, res) => {
 
 /**
  * @route   POST /api/auth/send-sms-otp
- * @desc    Mock SMS Provider: Generates an OTP and simulates sending it via terminal logs
+ * @desc    Mock SMS Provider: Generates an OTP, prints to log, and returns it for frontend display
  * @access  Private (Protected by JWT)
  */
 exports.sendSmsOtp = async (req, res) => {
@@ -238,7 +238,7 @@ exports.sendSmsOtp = async (req, res) => {
     const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiry
 
     // 2. Save directly to the user document
-    user.phoneOtp = otp; // Make sure your user model has a 'phoneOtp' field, or reuse a generic field
+    user.phoneOtp = otp;
     user.phoneOtpExpiry = expiry;
     await user.save();
 
@@ -249,9 +249,11 @@ exports.sendSmsOtp = async (req, res) => {
     console.log(`💬 MESSAGE: Your TrustGate MFA code is: [ ${otp} ]`);
     console.log("=================================================\n");
 
+    // Unified Portfolio Update: Returning the OTP so your frontend sandbox can capture and reveal it
     res.status(200).json({
       success: true,
-      message: `Security code generated! Check your backend server terminal to read the text message.`,
+      message: `Security code generated!`,
+      demoCode: otp, // ◄── Catch this inside your React state handlers
     });
   } catch (error) {
     console.error("Mock SMS Error:", error);
